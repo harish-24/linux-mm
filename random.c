@@ -117,7 +117,9 @@ static int loop_invalidate_cache(unsigned loop, unsigned iteration,
 static void loop_mmap(size_t length);
 static int loop_mmap_huge(void *data);
 static int loop_move_pages(int node1, int node2, size_t length);
+#ifdef MFD_HUGETLB
 static int memfd_huge(void *data);
+#endif
 static int migrate_huge_hotplug_memory(void *data);
 static int migrate_huge_offline(size_t free_size);
 static int migrate_ksm(void *data);
@@ -1952,6 +1954,7 @@ static void *thread_write(void *data)
 	return NULL;
 }
 
+#ifdef MFD_HUGETLB
 static int memfd_huge(void *data)
 {
 	struct memfd memfd_list[] = {
@@ -1999,6 +2002,7 @@ static int memfd_huge(void *data)
 	printf("- pass: %s\n", __func__);
 	return 0;
 }
+#endif
 
 static void end_string(char *string, size_t size, char end)
 {
@@ -2882,8 +2886,10 @@ int main(int argc, char *argv[])
 	bugs[i] = new(i, loop_mmap_huge, (void *)63,
 		"mmap hugepages concurrently.");
 	i++;
+#ifdef MFD_HUGETLB
 	bugs[i] = new(i, memfd_huge, NULL, "create memfd in hugetlbfs.");
 	i++;
+#endif
 	bugs[i] = new(i, fill_xfs, (void *)512, "fill up XFS repetitively.");
 	i++;
 	bugs[i] = new(i, mmap_collision, NULL,
